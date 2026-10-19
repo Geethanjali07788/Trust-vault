@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doc.title }} — TrustVault{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <a href="{{ url_for('documents.list_documents') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.25rem;">
+    &larr; Back to Vault
+  </a>
+</div>
+
+<div class="page-header">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <h1 class="page-title">{{ doc.title }}</h1>
+      <span class="badge badge-secondary">{{ doc.category }}</span>
+      {% if access_tier == 'owner' %}
+        <span class="badge" style="background:#2563eb; color:#fff;">Owner Access</span>
+      {% elif access_tier == 'edit' %}
+        <span class="badge badge-warning">Read & Edit Access</span>
+      {% elif access_tier == 'admin' %}
+        <span class="badge" style="background:#7c3aed; color:#fff;">Admin Access</span>
+      {% else %}
+        <span class="badge badge-info">Read Only</span>
+      {% endif %}
+    </div>
+    <p class="page-desc">{{ doc.description or "No description provided." }}</p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{{ url_for('documents.download_document', doc_id=doc.id) }}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Download File
+    </a>
+
+    {% if access_tier in ('owner', 'edit', 'admin') %}
+      <button class="btn btn-secondary" onclick="openModal('edit-modal')">
+        Edit Metadata
+      </button>
+    {% endif %}
+
+    {% if access_tier in ('owner', 'admin') %}
+      <button class="btn btn-danger" onclick="deleteDocument({{ doc.id }}, '{{ doc.title|escape }}')">
+        Delete Document
+      </button>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Metadata Overview Grid -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+  <div class="stat-card">
+    <span class="stat-label">Original Filename</span>
+    <span style="font-weight: 600; font-size: 1rem; margin-top: 0.25rem;">{{ doc.original_filename }}</span>
+    <span class="stat-sub">MIME: {{ doc.mime_type }}</span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">File Size</span>
+    <span style="font-weight: 600; font-size: 1.15rem; margin-top: 0.25rem;">{{ (doc.file_size / 1024)|round(1) }} KB</span>
+    <span class="stat-sub">{{ doc.file_size }} bytes</span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Document Owner</span>
+    <span style="font-weight: 600; font-size: 1.15rem; margin-top: 0.25rem;">{{ doc.owner_username }}</span>
+    <span class="stat-sub">{{ doc.owner_email }}</span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Vault Storage UID</span>
+    <span style="font-family: monospace; font-size: 0.85rem; margin-top: 0.25rem; color: var(--text-muted);">
+      {{ doc.storage_name[:16] }}...
+    </span>
+    <span class="stat-sub">Uploaded {{ doc.created_at[:10] }}</span>
+  </div>
+</div>
+
+<!-- Permissions Management Section (Owner & Admin only) -->
+{% if access_tier in ('owner', 'admin') %}
+<div class="card">
+  <div class="card-title">
+    <span>Access Control List (ACL)</span>
+    <button class="btn btn-primary btn-sm" onclick="openModal('grant-modal')">
+      + Grant User Access
+    </button>
+  </div>
+  <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+    Manage per-document permissions for named users. Revocations take effect on their immediate next request.
+  </p>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Permission Tier</th>
+          <th>Granted By</th>
+          <th>Granted At</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Owner always has permanent full rights -->
+        <tr>
+          <td><strong>{{ doc.owner_username }}</strong> <span class="badge badge-primary" style="background:#2563eb; color:#fff; font-size:0.65rem;">Owner</span></td>
+          <td>{{ doc.owner_email }}</td>
+          <td><span class="badge badge-success">Full Control</span></td>
+          <td><em>Creator</em></td>
+          <td>{{ doc.created_at[:10] }}</td>
+          <td style="text-align: right; color: var(--text-muted); font-size: 0.8rem;">Permanent</td>
+        </tr>
+
+        {% if permissions %}
+          {% for p in permissions %}
+            <tr>
+              <td><strong>{{ p.username }}</strong></td>
+              <td>{{ p.email }}</td>
+              <td>
+                {% if p.permission_level == 'edit' %}
+                  <span class="badge badge-warning">Read & Edit</span>
+                {% else %}
+                  <span class="badge badge-info">Read Only</span>
+                {% endif %}
+              </td>
+              <td>{{ p.granted_by_username }}</td>
+              <td>{{ p.granted_at[:10] }}</td>
+              <td style="text-align: right;">
+                <button class="btn btn-danger btn-sm" onclick="revokePermission({{ doc.id }}, {{ p.user_id }}, '{{ p.username|escape }}')">
+                  Revoke
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+              No other users have been granted access to this document.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Edit Metadata Modal -->
+<div id="edit-modal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('edit-modal')">&times;</button>
+    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Edit Document Details</h2>
+
+    <form id="edit-form" onsubmit="handleEdit(event)">
+      <div class="form-group">
+        <label class="form-label" for="edit-title">Title</label>
+        <input type="text" id="edit-title" class="form-control" value="{{ doc.title }}" required maxlength="150">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit-category">Category</label>
+        <select id="edit-category" class="form-control">
+          <option value="General" {% if doc.category == 'General' %}selected{% endif %}>General</option>
+          <option value="Finance" {% if doc.category == 'Finance' %}selected{% endif %}>Finance</option>
+          <option value="Engineering" {% if doc.category == 'Engineering' %}selected{% endif %}>Engineering</option>
+          <option value="Legal" {% if doc.category == 'Legal' %}selected{% endif %}>Legal</option>
+          <option value="HR" {% if doc.category == 'HR' %}selected{% endif %}>HR</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit-description">Description</label>
+        <textarea id="edit-description" class="form-control" rows="3">{{ doc.description }}</textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('edit-modal')">Cancel</button>
+        <button type="submit" id="edit-btn" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Grant Permission Modal -->
+<div id="grant-modal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('grant-modal')">&times;</button>
+    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Grant Document Access</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+      Grant a named registered user permission to view or edit this document.
+    </p>
+
+    <form id="grant-form" onsubmit="handleGrant(event)">
+      <div class="form-group">
+        <label class="form-label" for="grant-username">Username of Named User</label>
+        <input type="text" id="grant-username" class="form-control" placeholder="e.g. viewer" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="grant-level">Permission Level</label>
+        <select id="grant-level" class="form-control">
+          <option value="read" selected>Read Only (Can view details & download)</option>
+          <option value="edit">Read & Edit (Can download & update metadata)</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('grant-modal')">Cancel</button>
+        <button type="submit" id="grant-btn" class="btn btn-primary">Grant Access</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleEdit(e) {
+  e.preventDefault();
+  const title = document.getElementById("edit-title").value.trim();
+  const category = document.getElementById("edit-category").value;
+  const description = document.getElementById("edit-description").value.trim();
+  const btn = document.getElementById("edit-btn");
+
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  try {
+    const res = await secureFetch("/documents/{{ doc.id }}/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, category, description })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast("Metadata updated successfully!", "success");
+      closeModal("edit-modal");
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast(data.error || "Failed to update.", "error");
+    }
+  } catch (err) {
+    showToast("Network error: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Changes";
+  }
+}
+
+async function handleGrant(e) {
+  e.preventDefault();
+  const username = document.getElementById("grant-username").value.trim();
+  const permission_level = document.getElementById("grant-level").value;
+  const btn = document.getElementById("grant-btn");
+
+  btn.disabled = true;
+  btn.textContent = "Granting...";
+
+  try {
+    const res = await secureFetch("/documents/{{ doc.id }}/permissions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, permission_level })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast(data.message, "success");
+      closeModal("grant-modal");
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast(data.error || "Failed to grant permission.", "error");
+    }
+  } catch (err) {
+    showToast("Network error: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Grant Access";
+  }
+}
+</script>
+{% endblock %}

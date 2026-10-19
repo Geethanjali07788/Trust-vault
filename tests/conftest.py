@@ -10,9 +10,11 @@ from app.models.user import create_user
 def app():
     """Create and configure a new Flask app instance for each test."""
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
+    storage_tmp_dir = tempfile.mkdtemp(prefix="tv_test_vault_")
     
     class RuntimeTestConfig(TestConfig):
         DATABASE_PATH = db_path
+        STORAGE_DIR = storage_tmp_dir
 
     app = create_app(RuntimeTestConfig)
 
@@ -21,10 +23,13 @@ def app():
 
     yield app
 
-    # Cleanup temporary SQLite database file after test
+    # Cleanup temporary SQLite database and storage directory after test
     os.close(db_fd)
     if os.path.exists(db_path):
         os.remove(db_path)
+    import shutil
+    if os.path.exists(storage_tmp_dir):
+        shutil.rmtree(storage_tmp_dir, ignore_errors=True)
 
 
 @pytest.fixture

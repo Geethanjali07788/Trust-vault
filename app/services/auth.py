@@ -81,6 +81,18 @@ def role_required(*allowed_roles):
                 return jsonify({"error": "Authentication required."}), 401
 
             if user["role"] not in allowed_roles:
+                from app.services.audit import log_audit_event
+                log_audit_event(
+                    event_type="DENIED_ACCESS",
+                    user_id=user["id"],
+                    username=user["username"],
+                    details={
+                        "action": "role_access_blocked",
+                        "path": request.path,
+                        "user_role": user["role"],
+                        "required_roles": list(allowed_roles)
+                    }
+                )
                 return jsonify({
                     "error": "Forbidden: You do not have the required role to access this resource.",
                     "user_role": user["role"],

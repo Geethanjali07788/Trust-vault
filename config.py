@@ -31,6 +31,7 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"         # Protect against Cross-Site Request Forgery (CSRF)
     SESSION_COOKIE_SECURE = False           # Set to True when running under HTTPS / TLS
     PERMANENT_SESSION_LIFETIME = timedelta(hours=2) # Sessions expire after 2 hours of inactivity
+    WTF_CSRF_ENABLED = True                 # CSRF protection enabled by default across application
 
 
 class TestConfig(Config):

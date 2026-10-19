@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from app.models.user import (
     create_user,
     get_user_by_username,
@@ -16,6 +16,16 @@ from app.services.auth import (
 )
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+@auth_bp.route("/login", methods=["GET"])
+def login_view():
+    """Renders the login and registration page."""
+    user = get_current_user()
+    if user:
+        if user["role"] == "admin":
+            return redirect(url_for("admin.dashboard_view"))
+        return redirect(url_for("documents.list_documents"))
+    return render_template("auth/login.html")
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
@@ -105,6 +115,8 @@ def login():
 def logout():
     """Destroys the current user's session."""
     logout_user()
+    if request.method == "GET" and request.accept_mimetypes.accept_html and not request.is_json:
+        return redirect(url_for("auth.login_view"))
     return jsonify({"message": "Logged out successfully."}), 200
 
 

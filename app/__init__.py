@@ -16,12 +16,37 @@ def create_app(config_class=Config):
 
     # Register Route Blueprints
     from app.routes.auth import auth_bp
+    from app.routes.documents import doc_bp
+    from app.routes.admin import admin_bp
     app.register_blueprint(auth_bp)
+    app.register_blueprint(doc_bp)
+    app.register_blueprint(admin_bp)
 
-    # Context processor to make current_user available to all templates safely
+    from app.services.csrf import generate_csrf_token
+    from flask import redirect, url_for
+
+    # Root endpoint: redirects to vault or login
+    @app.route("/")
+    def root():
+        user = get_current_user()
+        if user:
+            if user["role"] == "admin":
+                return redirect(url_for("admin.dashboard_view"))
+            return redirect(url_for("documents.list_documents"))
+        return redirect(url_for("auth.login_view"))
+
+    # Expose CSRF token endpoint
+    @app.route("/auth/csrf-token", methods=["GET"])
+    def get_csrf_endpoint():
+        return jsonify({"csrf_token": generate_csrf_token()}), 200
+
+    # Context processor to make current_user and csrf_token available to all templates safely
     @app.context_processor
-    def inject_user():
-        return dict(current_user=get_current_user())
+    def inject_security_context():
+        return dict(
+            current_user=get_current_user(),
+            csrf_token=generate_csrf_token()
+        )
 
     # JSON error handlers for consistent security error responses
     @app.errorhandler(400)

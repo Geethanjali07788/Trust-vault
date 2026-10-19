@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Oversight Console — TrustVault{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Administrator Oversight Console</h1>
+    <p class="page-desc">System activity metrics, cryptographic audit logs, and chain integrity verification</p>
+  </div>
+</div>
+
+<!-- System Statistics Grid -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <span class="stat-label">Total Users</span>
+    <span class="stat-value">{{ stats.users.total }}</span>
+    <span class="stat-sub">
+      {{ stats.users.admin }} Admins • {{ stats.users.owner }} Owners • {{ stats.users.viewer }} Viewers
+    </span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Active Documents</span>
+    <span class="stat-value">{{ stats.documents.total_active }}</span>
+    <span class="stat-sub">{{ stats.documents.total_storage_mb }} MB in Vault Storage</span>
+  </div>
+
+  <div class="stat-card {% if stats.security.denied_access_attempts > 0 %}stat-alert{% endif %}">
+    <span class="stat-label">Security Alerts (Denied Access)</span>
+    <span class="stat-value">{{ stats.security.denied_access_attempts }}</span>
+    <span class="stat-sub">Blocked IDOR and unauthorized probes</span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Total Audit Events</span>
+    <span class="stat-value">{{ stats.security.total_audit_events }}</span>
+    <span class="stat-sub">Cryptographically linked records</span>
+  </div>
+</div>
+
+<!-- Cryptographic Audit Chain Verifier Card -->
+<div class="card" style="border-left: 4px solid var(--primary); margin-bottom: 2rem;">
+  <div class="card-title">
+    <span>Tamper-Evident Audit Trail Integrity</span>
+    <span id="verification-status" class="badge badge-secondary">Pending Verification</span>
+  </div>
+  <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+    Every audit log is cryptographically linked to its predecessor via SHA-256 (<code>current_hash = SHA256(prev_hash + log_data)</code>). 
+    Clicking below traverses the entire chain from Genesis forward to mathematically verify that zero records were modified, deleted, or inserted.
+  </p>
+  <button id="verify-btn" class="btn btn-primary" onclick="runAuditVerification()">
+    Verify Hash Chain Integrity Now
+  </button>
+</div>
+
+<!-- Audit Trail Log Inspector -->
+<div class="card" style="margin-bottom: 2rem;">
+  <div class="card-title">
+    <span>Cryptographic Audit Trail</span>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">
+      Page {{ audit_data.pagination.page }} of {{ audit_data.pagination.total_pages }} ({{ audit_data.pagination.total_records }} total logs)
+    </span>
+  </div>
+
+  <!-- Filter Bar -->
+  <form id="audit-filter-form" method="GET" action="{{ url_for('admin.dashboard_view') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 0.75rem; align-items: flex-end; margin-bottom: 1.25rem;">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="filter-event">Event Type</label>
+      <select id="filter-event" name="event_type" class="form-control">
+        <option value="">All Events</option>
+        <option value="DOC_UPLOAD" {% if request.args.get('event_type') == 'DOC_UPLOAD' %}selected{% endif %}>DOC_UPLOAD</option>
+        <option value="DOC_DOWNLOAD" {% if request.args.get('event_type') == 'DOC_DOWNLOAD' %}selected{% endif %}>DOC_DOWNLOAD</option>
+        <option value="DOC_VIEW" {% if request.args.get('event_type') == 'DOC_VIEW' %}selected{% endif %}>DOC_VIEW</option>
+        <option value="DOC_EDIT" {% if request.args.get('event_type') == 'DOC_EDIT' %}selected{% endif %}>DOC_EDIT</option>
+        <option value="DOC_DELETE" {% if request.args.get('event_type') == 'DOC_DELETE' %}selected{% endif %}>DOC_DELETE</option>
+        <option value="PERM_GRANT" {% if request.args.get('event_type') == 'PERM_GRANT' %}selected{% endif %}>PERM_GRANT</option>
+        <option value="PERM_REVOKE" {% if request.args.get('event_type') == 'PERM_REVOKE' %}selected{% endif %}>PERM_REVOKE</option>
+        <option value="DENIED_ACCESS" {% if request.args.get('event_type') == 'DENIED_ACCESS' %}selected{% endif %}>DENIED_ACCESS</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="filter-user">Username</label>
+      <input type="text" id="filter-user" name="username" class="form-control" value="{{ request.args.get('username', '') }}" placeholder="Search user...">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" for="filter-doc">Doc ID</label>
+      <input type="number" id="filter-doc" name="doc_id" class="form-control" value="{{ request.args.get('doc_id', '') }}" placeholder="e.g. 1">
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-secondary">Apply Filter</button>
+      <a href="{{ url_for('admin.dashboard_view') }}" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Timestamp (UTC)</th>
+          <th>Event Type</th>
+          <th>Actor</th>
+          <th>IP Address</th>
+          <th>Doc ID</th>
+          <th>Event Details</th>
+          <th>SHA-256 Current Hash</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if audit_data.logs %}
+          {% for log in audit_data.logs %}
+            <tr>
+              <td><code>#{{ log.id }}</code></td>
+              <td style="font-size: 0.8rem; color: var(--text-muted);">{{ log.timestamp }}</td>
+              <td>
+                {% if log.event_type == 'DENIED_ACCESS' %}
+                  <span class="badge badge-danger">DENIED_ACCESS</span>
+                {% elif log.event_type in ('PERM_GRANT', 'PERM_REVOKE') %}
+                  <span class="badge badge-warning">{{ log.event_type }}</span>
+                {% elif log.event_type == 'DOC_UPLOAD' %}
+                  <span class="badge badge-success">DOC_UPLOAD</span>
+                {% else %}
+                  <span class="badge badge-info">{{ log.event_type }}</span>
+                {% endif %}
+              </td>
+              <td><strong>{{ log.username or "Anonymous" }}</strong></td>
+              <td style="font-family: monospace; font-size: 0.8rem;">{{ log.ip_address or "127.0.0.1" }}</td>
+              <td>{% if log.doc_id %}<a href="{{ url_for('documents.get_document_details', doc_id=log.doc_id) }}">#{{ log.doc_id }}</a>{% else %}—{% endif %}</td>
+              <td style="font-size: 0.8rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ log.details }}">
+                {{ log.details }}
+              </td>
+              <td style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);" title="{{ log.current_hash }}">
+                {{ log.current_hash[:12] }}...{{ log.current_hash[-6:] }}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+              No audit logs found matching the filter.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if audit_data.pagination.total_pages > 1 %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+      <div>
+        {% if audit_data.pagination.page > 1 %}
+          <a href="{{ url_for('admin.dashboard_view', page=audit_data.pagination.page - 1, event_type=request.args.get('event_type'), username=request.args.get('username'), doc_id=request.args.get('doc_id')) }}" class="btn btn-secondary btn-sm">&larr; Previous</a>
+        {% endif %}
+      </div>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">
+        Page {{ audit_data.pagination.page }} of {{ audit_data.pagination.total_pages }}
+      </span>
+      <div>
+        {% if audit_data.pagination.page < audit_data.pagination.total_pages %}
+          <a href="{{ url_for('admin.dashboard_view', page=audit_data.pagination.page + 1, event_type=request.args.get('event_type'), username=request.args.get('username'), doc_id=request.args.get('doc_id')) }}" class="btn btn-secondary btn-sm">Next &rarr;</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- User Directory Table -->
+<div class="card">
+  <div class="card-title">
+    <span>Registered User Directory</span>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">{{ users|length }} Total Users</span>
+  </div>
+  <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+    System-wide user accounts and active roles. Passwords hashes are never displayed.
+  </p>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>#{{ u.id }}</td>
+            <td><strong>{{ u.username }}</strong></td>
+            <td>{{ u.email }}</td>
+            <td><span class="role-tag role-{{ u.role }}">{{ u.role }}</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="font-size: 0.85rem; color: var(--text-muted);">{{ u.created_at[:10] }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
