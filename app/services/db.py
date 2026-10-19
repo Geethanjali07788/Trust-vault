@@ -20,10 +20,7 @@ def get_db(db_path=None):
     # If within a Flask request context, reuse connection stored in g
     if current_app:
         if "db" not in g:
-            conn = sqlite3.connect(
-                db_path,
-                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
-            )
+            conn = sqlite3.connect(db_path)
             conn.row_factory = sqlite3.Row
             # Enforce foreign key constraints (SQLite has them OFF by default!)
             conn.execute("PRAGMA foreign_keys = ON;")
@@ -34,10 +31,7 @@ def get_db(db_path=None):
         return g.db
     else:
         # Standalone script connection (outside Flask request context)
-        conn = sqlite3.connect(
-            db_path,
-            detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
-        )
+        conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON;")
         if db_path != ":memory:":
