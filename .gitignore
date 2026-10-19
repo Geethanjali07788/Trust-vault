@@ -1,0 +1,26 @@
+# Python virtual environment
+venv/
+ENV/
+env/
+
+# Python compiled bytecode cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# SQLite databases (data should not be committed to Git)
+*.db
+*.sqlite3
+
+# Secure document storage (uploaded files must NEVER be checked into Git)
+storage/vault/*
+!storage/vault/.gitkeep
+
+# Environment secrets
+.env
+
+# Operating system artifacts
+Thumbs.db
+Desktop.ini
+.DS_Store
