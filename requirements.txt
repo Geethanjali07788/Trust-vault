@@ -4,3 +4,4 @@ Werkzeug==3.0.3
 
 # Automated Testing Framework
 pytest==8.2.0
+gunicorn
