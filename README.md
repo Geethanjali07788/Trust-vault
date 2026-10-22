@@ -1,5 +1,3 @@
-# TrustVault – Secure Document Sharing Application
-
 ## Project Overview
 
 TrustVault is a secure document-sharing web application built using Python and Flask. It is designed to help users manage documents, control access to sensitive files, and maintain an audit trail of important activities.
@@ -17,7 +15,7 @@ The main goal of TrustVault is to provide a centralized platform for document ma
 - **Activity Audit Logging:** Records important activities to support accountability and auditing.
 - **Automated Testing:** Includes automated tests using Pytest to check application behavior.
 
-*Note: The availability and effectiveness of each feature depend on the current implementation and verified test results.*
+_Note: The availability and effectiveness of each feature depend on the current implementation and verified test results._
 
 ## Technology Stack
 
