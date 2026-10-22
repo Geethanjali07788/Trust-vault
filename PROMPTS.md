@@ -64,21 +64,21 @@ This document records AI assistance used during TrustVault development. Dates, p
 
 ## Entry 8: Authorization and Document Access Review
 
-- Date: To be confirmed from actual work history.
-- Goal: Review document ownership and authorization checks.
-- Assistance requested: Record the actual prompt used to review access permissions and unauthorized document access.
-- Result: Record the actual findings or changes made.
-- Verification: Record the authorization checks and tests actually performed.
-- Commit: Add the relevant commit hash if applicable.
+- Date: 2026-10-22
+- Goal: Review document ownership and authorization requirements.
+- Assistance requested: Assistance with identifying authorization checks needed to prevent unauthorized document access.
+- Result: Documented the need to verify document ownership and permissions before allowing access.
+- Verification: Authorization behavior must be checked against the application code and relevant tests. Full verification is pending.
+- Commit: No separate commit verified for this review.
 
 ## Entry 9: Audit Logging Review
 
-- Date: To be confirmed from actual work history.
-- Goal: Review the application's audit logging.
-- Assistance requested: Record the actual prompt used to review security events and audit-log protection.
-- Result: Record the actual findings or implementation changes. If audit logging was not implemented, document it as a limitation.
-- Verification: Record only the events and tests actually checked.
-- Commit: Add the relevant commit hash if applicable.
+- Date: 2026-10-22
+- Goal: Review audit logging and security-event tracking requirements.
+- Assistance requested: Assistance with identifying important security events and reviewing audit-log protection requirements.
+- Result: Documented audit logging as a security requirement to review. The implementation status has not been independently verified.
+- Verification: Check the application code to confirm which events are recorded and whether audit records are protected. Verification is pending.
+- Commit: No separate commit verified for this review.
 
 ## Documentation Notes
 
