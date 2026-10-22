@@ -1,123 +1,89 @@
-This file documents AI assistance used during the development of TrustVault. It records project planning, implementation support, debugging, verification, and Git commits. Only prompts and outcomes that match the actual development history should be treated as verified.
+This document records AI assistance used during TrustVault development. Dates, prompts, outcomes, and verification details should reflect the actual work performed.
 
 ## Entry 1: Project Planning
 
-**Date:** 2026-10-19
+- Date: 2026-10-19
+- Goal: Plan a secure document-sharing application.
+- Assistance requested: Help plan the project structure and core features.
+- Result: Prepared the initial project plan.
+- Verification: Reviewed the project structure and requirements.
 
-**Task:** Planning the project structure and implementation phases.
+## Entry 2: Database Setup
 
-**Actual Prompt:** Assistance was requested to understand the TrustVault challenge requirements and plan the project implementation.
+- Date: 2026-10-19
+- Goal: Set up the SQLite database and database connection.
+- Assistance requested: Help organize the database schema and connection components.
+- Result: Developed database components.
+- Verification: Review the implementation and actual database test results.
+- Commit: `6b2a114`
 
-**Issue:** The challenge requirements needed to be converted into clear development tasks.
+## Entry 3: Authentication and Access Control
 
-**Action Taken:** Used AI guidance to understand the requirements, organize implementation tasks, and identify the project components that needed attention.
+- Date: 2026-10-19
+- Goal: Develop authentication and role-based access control.
+- Assistance requested: Help with password hashing, session security, authentication, and role-based permissions.
+- Result: Developed authentication and access-control functionality.
+- Verification: Check the relevant code and actual test results.
+- Commit: `16e057d`
 
-**Verification:** Reviewed the proposed development steps against the challenge requirements. Record implementation verification separately when supported by actual test results.
+## Entry 4: Application Development
 
-**Commit Details:** No specific commit has been verified for this entry.
+- Date: 2026-10-19
+- Goal: Develop the TrustVault application.
+- Assistance requested: Help organize and develop the application components.
+- Result: Created the application files and features.
+- Verification: Review the implementation and verify application behavior.
+- Commit: `3f0d3d1`
 
-## Entry 2: Project Setup
+## Entry 5: Security Threat Modeling
 
-**Date:** 2026-10-19
+- Date: 2026-10-20
+- Goal: Identify potential security risks.
+- Assistance requested: Help document unauthorized document access, privilege escalation, malicious uploads, path traversal, session attacks, and CSRF.
+- Result: Created documentation describing threats, possible mitigations, and verification requirements.
+- Verification: Compare documented mitigations with the actual implementation.
+- Commit: `fdf151a`
 
-**Task:** Setting up the TrustVault development environment.
+## Entry 6: AI Assistance Documentation
 
-**Actual Prompt:** Assistance was requested with project setup and the commands required to run the application.
+- Date: 2026-10-20
+- Goal: Organize AI assistance documentation.
+- Assistance requested: Help structure the AI assistance log.
+- Result: Updated AI assistance documentation.
+- Verification: Compare entries with actual development activities.
+- Commit: `5d04d5b`
 
-**Issue:** The development environment and application startup process needed to be understood.
+## Entry 7: README and Deployment Documentation
 
-**Action Taken:** Received step-by-step guidance for working in the TrustVault project folder and setting up the Python environment.
+- Date: 2026-10-20 to 2026-10-22
+- Goal: Document project setup and deployment.
+- Assistance requested: Help improve the README and deployment instructions.
+- Result: Updated project documentation.
+- Verification: Check the documentation and deployed application.
+- Commits: `3a4934d`, `8a103f8`, `a1bd23a`
 
-**Verification:** Confirm the virtual environment, dependencies, and application startup using the actual terminal output before marking setup as successful.
+## Entry 8: Authorization and Document Access Review
 
-**Commit Details:** No specific commit has been verified for this entry.
+- Date: To be confirmed from actual work history.
+- Goal: Review document ownership and authorization checks.
+- Assistance requested: Record the actual prompt used to review access permissions and unauthorized document access.
+- Result: Record the actual findings or changes made.
+- Verification: Record the authorization checks and tests actually performed.
+- Commit: Add the relevant commit hash if applicable.
 
-## Entry 3: Application Entry Point Review
+## Entry 9: Audit Logging Review
 
-**Date:** 2026-10-19
+- Date: To be confirmed from actual work history.
+- Goal: Review the application's audit logging.
+- Assistance requested: Record the actual prompt used to review security events and audit-log protection.
+- Result: Record the actual findings or implementation changes. If audit logging was not implemented, document it as a limitation.
+- Verification: Record only the events and tests actually checked.
+- Commit: Add the relevant commit hash if applicable.
 
-**Task:** Reviewing the application startup code in `run.py`.
+## Documentation Notes
 
-**Actual Prompt:** Assistance was requested to understand and review the TrustVault application entry-point code.
-
-**Issue:** The startup flow, application creation, database initialization, and port configuration needed to be understood.
-
-**Action Taken:** Reviewed the shared `run.py` code, including application creation, database initialization inside the application context, and port configuration.
-
-**Verification:** Check the actual application startup output and database initialization results. Do not mark runtime verification as successful without evidence.
-
-**Commit Details:** No specific commit has been verified for this entry.
-
-## Entry 4: Git Repository and Commit
-
-**Date:** 2026-10-19
-
-**Task:** Recording project changes in Git.
-
-**Actual Prompt:** Assistance was requested with checking the Git repository and preparing to push the project to GitHub.
-
-**Issue:** The local project changes needed to be committed, and the GitHub remote configuration needed to be checked before pushing.
-
-**Action Taken:** A local Git commit was created for the TrustVault project. The reported commit included 30 files.
-
-**Verification:** The user reported that the local commit completed successfully. The Git remote configuration still needs to be checked using `git remote -v` before confirming the remote repository or push status.
-
-**Commit Details:** Reported local commit: `3f0d3d1`. Verify with `git log -1 --oneline`.
-
-## Entry 5: GitHub Remote and Push Preparation
-
-**Date:** 2026-10-19
-
-**Task:** Checking the GitHub remote before pushing the project.
-
-**Actual Prompt:** Assistance was requested to continue after the successful local commit and check the GitHub remote configuration.
-
-**Issue:** It was necessary to confirm whether a GitHub remote was configured before attempting to push.
-
-**Action Taken:** The next instructed command was `git remote -v` to inspect the configured remotes.
-
-**Verification:** Run `git remote -v` and inspect the actual output. Confirm a successful push only after checking the push result.
-
-**Commit Details:** Related local commit reported as `3f0d3d1`. No separate commit has been verified for this entry.
-
-## Entry 6: Challenge Requirements and Implementation Tracking
-
-**Date:** 2026-10-19
-
-**Task:** Keeping the implementation aligned with the TrustVault challenge requirements.
-
-**Actual Prompt:** Assistance was requested to understand the project requirements and proceed with implementation step by step.
-
-**Issue:** The project needed to be developed and checked against the challenge requirements rather than relying only on a general project plan.
-
-**Action Taken:** Used AI guidance to organize the development process and review the application code shared during the conversation.
-
-**Verification:** Compare the implemented features with the official challenge requirements and test each feature. Add specific test results only after performing the tests.
-
-**Commit Details:** No specific commit has been verified for this entry.
-
-## Entry 7: Documentation Review
-
-**Date:** 2026-10-20
-
-**Task:** Updating `PROMPTS.md` to document AI-assisted development.
-
-**Actual Prompt:** Assistance was requested to complete `PROMPTS.md` according to the challenge documentation requirements, including prompts, issues, actions, verification, and commit details.
-
-**Issue:** The existing project-planning entry did not document all the requested information.
-
-**Action Taken:** Prepared a structured Markdown log with separate entries for planning, setup, code review, Git, and verification.
-
-**Verification:** Review the entries against the actual conversation history, terminal output, source-code changes, and Git history. Remove or correct any entry that does not match the actual work performed.
-
-**Commit Details:** No commit has been verified for this documentation update.
-
-## Notes
-
-- Record the actual prompts used during development whenever they are available.
-- Keep dates consistent with the real development history.
-- Include only actions that were actually performed.
-- Do not claim that tests passed unless they were run successfully.
-- Do not claim that code was changed unless the change is confirmed.
-- Verify commit hashes with Git before associating them with specific changes.
-- Update this document whenever additional AI-assisted development work is performed.
+- Dates and prompts must reflect actual development work.
+- Commit references must correspond to the described changes.
+- Documented security mitigations must not be presented as implemented controls unless verified.
+- Test results must reflect tests that were actually executed.
+- Unimplemented features and known limitations must be reported honestly.
