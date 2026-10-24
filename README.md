@@ -139,7 +139,7 @@ AI-generated code and suggestions should be reviewed, tested, and understood bef
 
 ## Deployment
 
-**Live Application:** https://trustvault-app-qwoi.onrender.com
+**Live Application:**https://trustvault-app-qwoi.onrender.com
 
 The deployed application should be checked in a private or incognito browser window to confirm that it is accessible without a developer's existing login session.
 
@@ -156,7 +156,7 @@ A project demonstration should cover:
 5. Audit logging
 6. Automated testing and security considerations
 
-**Demo video:** To be added after recording and verification.
+**Demo Video:** https://drive.google.com/file/d/1u9vkBatKsagt4tmMTPr70ESoP6DEXKdD/view?usp=sharing
 
 Only demonstrate features that are implemented and working in the deployed application.
 
