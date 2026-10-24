@@ -51,8 +51,8 @@ TrustVault follows a web application architecture consisting of the following co
 Replace the placeholder below with your actual public repository URL when sharing this README.
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd <YOUR_PROJECT_FOLDER>
+git clone https://github.com/Geethanjali07788/Trust-vault.git
+cd Trust-vault
 ```
 
 ### Step 2: Create a Virtual Environment
@@ -139,7 +139,7 @@ AI-generated code and suggestions should be reviewed, tested, and understood bef
 
 ## Deployment
 
-**Live Application:**https://trustvault-app-qwoi.onrender.com
+**Live Application:**[Open TrustVault](https://trustvault-app-qwoi.onrender.com)
 
 The deployed application should be checked in a private or incognito browser window to confirm that it is accessible without a developer's existing login session.
 
